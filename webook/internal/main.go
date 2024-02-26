@@ -9,7 +9,7 @@ func main() {
 
 	server := gin.Default()
 
-	u := &web.UserHandler{}
+	u := web.NewUserHandler()
 	u.RegisterUserRoutes(server)
 
 	server.Run(":8080")
