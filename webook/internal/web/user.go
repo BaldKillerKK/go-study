@@ -26,9 +26,15 @@ func (u *UserHandler) Signup(ctx *gin.Context) {
 
 	var req signupReq
 
+	// Bind 方法会根据Content-Type指定的格式 解析数据到req里面
+	// 解析错误 会直接返回400的错误
 	if err := ctx.Bind(&req); err != nil {
 		return
 	}
+
+	// 正则判断邮箱
+
+	// 正则判断密码
 
 	ctx.String(200, "signup %v", req)
 }
