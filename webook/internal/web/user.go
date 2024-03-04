@@ -1,8 +1,11 @@
 package web
 
 import (
+	"fmt"
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
+	"go-study/webook/internal/domain"
+	"go-study/webook/internal/service"
 	"net/http"
 )
 
@@ -13,12 +16,14 @@ const (
 
 // UserHandler 定义和用户有关的路由
 type UserHandler struct {
+	svc              *service.UserService
 	emailRegexExp    *regexp.Regexp
 	passwordRegexExp *regexp.Regexp
 }
 
-func NewUserHandler() *UserHandler {
+func NewUserHandler(svc *service.UserService) *UserHandler {
 	return &UserHandler{
+		svc:              svc,
 		emailRegexExp:    regexp.MustCompile(emailRegexPattern, regexp.None),
 		passwordRegexExp: regexp.MustCompile(passwordRegexPattern, regexp.None),
 	}
@@ -47,6 +52,7 @@ func (u *UserHandler) Signup(ctx *gin.Context) {
 	// Bind 方法会根据Content-Type指定的格式 解析数据到req里面
 	// 解析错误 会直接返回400的错误
 	if err := ctx.Bind(&req); err != nil {
+		fmt.Println("错误")
 		return
 	}
 
@@ -80,11 +86,37 @@ func (u *UserHandler) Signup(ctx *gin.Context) {
 		return
 	}
 
-	ctx.String(200, "signup %v", req)
+	err = u.svc.Signup(ctx, domain.User{
+		Email:    req.Email,
+		Password: req.Password,
+	})
+
+	if err == service.ErrUserDuplicateEmail {
+		ctx.String(http.StatusOK, "重复邮箱,请换一个邮箱")
+		return
+	}
+
+	if err != nil {
+		ctx.String(http.StatusOK, "服务器异常,注册失败")
+		return
+	}
+
+	ctx.String(http.StatusOK, "注册成功")
 }
 
 // Login 用户登录
 func (u *UserHandler) Login(ctx *gin.Context) {
+	type LoginReq struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	var loginReq LoginReq
+
+	if err := ctx.Bind(&loginReq); err != nil {
+		fmt.Println("错误")
+		return
+	}
 
 }
 
